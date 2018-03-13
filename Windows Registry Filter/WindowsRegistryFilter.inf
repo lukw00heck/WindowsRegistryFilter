@@ -1,0 +1,86 @@
+;
+; WindowsRegistryFilter.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=WindowsRegistryFilter.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+WindowsRegistryFilter_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+WindowsRegistryFilter.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%WindowsRegistryFilter.DeviceDesc%=WindowsRegistryFilter_Device, Root\WindowsRegistryFilter ; TODO: edit hw-id
+
+[WindowsRegistryFilter_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+WindowsRegistryFilter.sys
+
+;-------------- Service installation
+[WindowsRegistryFilter_Device.NT.Services]
+AddService = WindowsRegistryFilter,%SPSVCINST_ASSOCSERVICE%, WindowsRegistryFilter_Service_Inst
+
+; -------------- WindowsRegistryFilter driver install sections
+[WindowsRegistryFilter_Service_Inst]
+DisplayName    = %WindowsRegistryFilter.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\WindowsRegistryFilter.sys
+
+;
+;--- WindowsRegistryFilter_Device Coinstaller installation ------
+;
+
+[WindowsRegistryFilter_Device.NT.CoInstallers]
+AddReg=WindowsRegistryFilter_Device_CoInstaller_AddReg
+CopyFiles=WindowsRegistryFilter_Device_CoInstaller_CopyFiles
+
+[WindowsRegistryFilter_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[WindowsRegistryFilter_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[WindowsRegistryFilter_Device.NT.Wdf]
+KmdfService =  WindowsRegistryFilter, WindowsRegistryFilter_wdfsect
+[WindowsRegistryFilter_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "WindowsRegistryFilter Installation Disk"
+WindowsRegistryFilter.DeviceDesc = "WindowsRegistryFilter Device"
+WindowsRegistryFilter.SVCDESC = "WindowsRegistryFilter Service"
